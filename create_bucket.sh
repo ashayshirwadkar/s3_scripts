@@ -28,8 +28,8 @@ hmac_sha256() {
   echo -en "$data" | openssl dgst -sha256 -mac HMAC -macopt "$key" | sed 's/^.* //'
 }
 
-s3Key="AKIAJAOSYQ7GL6NBAXYA"
-secret="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"
+s3Key="aaaaaaaaaaaaaa" #Access key
+secret="bbbbbbbbbbbbb" #Secret Access key
 date=${dateScope}
 service="s3"
 

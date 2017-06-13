@@ -38,17 +38,15 @@ service="s3"
 
 # Four-step signing key calculation
 dateKey=$(hmac_sha256 key:"AWS4$secret" $date)
-
 echo "dateKey" $dateKey
 
 dateRegionKey=$(hmac_sha256 hexkey:$dateKey $region)
-
 echo "dateRegionKey" $dateRegionKey
+
 dateRegionServiceKey=$(hmac_sha256 hexkey:$dateRegionKey $service)
-
 echo "dateRegionServiceKey" $dateRegionServiceKey
-signingKey=$(hmac_sha256 hexkey:$dateRegionServiceKey "aws4_request")
 
+signingKey=$(hmac_sha256 hexkey:$dateRegionServiceKey "aws4_request")
 echo "Value of signing key is" $signingKey
 
 # Signature calculated using string_to_sign and signing key

@@ -1,7 +1,7 @@
 #!/bin/sh -x
 if [ -z "$2" ]
 then
-    echo "usage: ./put_object <bucket_name> <object_name>"
+    echo "usage: ./get_object <bucket_name> <object_name>"
     exit 1
 fi
 

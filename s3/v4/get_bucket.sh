@@ -1,8 +1,10 @@
 #!/bin/sh -x
 bucket=$1
-if [ -z "$1" ]
+region=$2
+
+if [ -z "$2" ]
 then
-    echo "usage: ./get_bucket <bucket_name>"
+    echo "usage: ./get_bucket <bucket_name> <region_name>"
     exit 1
 fi
 

@@ -1,17 +1,17 @@
 #!/bin/sh -x
-if [ -z "$2" ]
+if [ -z "$3" ]
 then
-    echo "usage: ./get_object <bucket_name> <object_name>"
+    echo "usage: ./put_object <bucket_name> <object_name> <region_name>"
     exit 1
 fi
 
 bucket=$1
 object=$2
+region=$3
 
 timestamp=$(date -u "+%Y-%m-%d %H:%M:%S")
 isoTimestamp=$(date -ud "${timestamp}" "+%Y%m%dT%H%M%SZ")
 dateScope=$(date -ud "${timestamp}" "+%Y%m%d")
-region="us-east-1"
 
 # Process of getting String to sign
 payload=$(echo -en ${data} | openssl dgst -sha256 | sed 's/^.* //')
@@ -29,8 +29,8 @@ hmac_sha256() {
   echo -en "$data" | openssl dgst -sha256 -mac HMAC -macopt "$key" | sed 's/^.* //'
 }
 
-s3Key="aaaaaaaaaaaaaa" #Access key
-secret="bbbbbbbbbbbbb" #Secret Access key
+s3Key="aaaaaaaaaaaaaa" # Access key
+secret="bbbbbbbbbbbbb" # Secret Access key
 
 date=${dateScope}
 service="s3"

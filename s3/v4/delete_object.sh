@@ -1,12 +1,13 @@
 #!/bin/sh -x
-if [ -z "$2" ]
+if [ -z "$3" ]
 then
-    echo "usage: ./delete_object <bucket_name> <object_name>"
+    echo "usage: ./put_object <bucket_name> <object_name> <region_name>"
     exit 1
 fi
 
 bucket=$1
 object=$2
+region=$3
 
 timestamp=$(date -u "+%Y-%m-%d %H:%M:%S")
 isoTimestamp=$(date -ud "${timestamp}" "+%Y%m%dT%H%M%SZ")

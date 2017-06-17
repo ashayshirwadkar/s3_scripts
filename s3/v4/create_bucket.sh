@@ -1,15 +1,15 @@
 #!/bin/sh -x
 bucket=$1
-if [ -z "$1" ]
+region=$2
+if [ -z "$2" ]
 then
-    echo "usage: ./create_bucket <bucket_name>"
+    echo "usage: ./create_bucket <bucket_name> <region_name>"
     exit 1
 fi
 
 timestamp=$(date -u "+%Y-%m-%d %H:%M:%S")
 isoTimestamp=$(date -ud "${timestamp}" "+%Y%m%dT%H%M%SZ")
 dateScope=$(date -ud "${timestamp}" "+%Y%m%d")
-region="ap-south-1"
 createBucketConf="<CreateBucketConfiguration><LocationConstraint>"${region}"</LocationConstraint></CreateBucketConfiguration>"
 
 

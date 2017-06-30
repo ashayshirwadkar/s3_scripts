@@ -59,14 +59,11 @@ auth_header="AWS4-HMAC-SHA256 Credential= ${cred}, SignedHeaders=${signedHeaders
 
 
 # Final request
-curl -v -X PUT https://${bucket}.s3-${region}.amazonaws.com/ \
+curl --connect-timeout 60 --max-time 900 -v -X PUT https://${bucket}.s3-${region}.amazonaws.com/ \
     -H "Authorization: AWS4-HMAC-SHA256 \
          Credential=${cred}, \
          SignedHeaders=${signedHeaders}, \
          Signature=${calc_sign}" \
     -H "x-amz-content-sha256: ${payload}" \
     -H "x-amz-date: ${isoTimestamp}" \
-    -H "Content-Length: 106" -d ${createBucketConf}
-
-
-
+    -H "Content-Length: "${#createBucketConf}"" -d ${createBucketConf}

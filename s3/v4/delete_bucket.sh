@@ -15,7 +15,7 @@ dateScope=$(date -ud "${timestamp}" "+%Y%m%d")
 
 # Process of getting String to sign
 payload="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-canonical_req="DELETE\n/\n\nhost:${bucket}.s3.amazonaws.com\nx-amz-content-sha256:${payload}\nx-amz-date:${isoTimestamp}\n\nhost;x-amz-content-sha256;x-amz-date\n${payload}"
+canonical_req="DELETE\n/\n\nhost:${bucket}.s3-${region}.amazonaws.com\nx-amz-content-sha256:${payload}\nx-amz-date:${isoTimestamp}\n\nhost;x-amz-content-sha256;x-amz-date\n${payload}"
 hash_canonical=$(echo -en ${canonical_req} | openssl dgst -sha256 | sed 's/^.* //')
 
 stringtosign="AWS4-HMAC-SHA256\n${isoTimestamp}\n${dateScope}/${region}/s3/aws4_request\n${hash_canonical}"
@@ -28,8 +28,8 @@ hmac_sha256() {
   echo -en "$data" | openssl dgst -sha256 -mac HMAC -macopt "$key" | sed 's/^.* //'
 }
 
-s3Key="aaaaaaaaaaaaaa" # Access key
-secret="bbbbbbbbbbbbb" # Secret Access key
+s3Key="aaaaaaaaaaaa" # Access key
+secret="bbbbbbbbbbb" # Secret Access key
 date=${dateScope}
 service="s3"
 
@@ -60,7 +60,7 @@ auth_header="AWS4-HMAC-SHA256 Credential= ${cred}, SignedHeaders=${signedHeaders
 
 
 # Final request
-curl -v -X DELETE https://${bucket}.s3.amazonaws.com/ \
+curl -v -X DELETE https://${bucket}.s3-${region}.amazonaws.com/ \
      -H "Authorization: AWS4-HMAC-SHA256 \
          Credential=${cred}, \
          SignedHeaders=${signedHeaders}, \

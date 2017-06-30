@@ -11,7 +11,6 @@ fi
 timestamp=$(date -u "+%Y-%m-%d %H:%M:%S")
 isoTimestamp=$(date -ud "${timestamp}" "+%Y%m%dT%H%M%SZ")
 dateScope=$(date -ud "${timestamp}" "+%Y%m%d")
-region="ap-south-1"
 
 
 # Process of getting String to sign
@@ -28,8 +27,8 @@ hmac_sha256() {
   echo -en "$data" | openssl dgst -sha256 -mac HMAC -macopt "$key" | sed 's/^.* //'
 }
 
-s3Key="aaaaaaaaaaaaaa" # Access key
-secret="bbbbbbbbbbbbb" # Secret Access key
+s3Key="AKIAIUMUH4VS3U3CLGQQ" # Access key
+secret="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" # Secret Access key
 date=${dateScope}
 service="s3"
 

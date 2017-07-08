@@ -1,13 +1,33 @@
  #!/bin/sh -x
-if [ -z "$3" ]
-then
-    echo "usage: ./put_object <bucket_name> <object_name> <region_name>"
-    exit 1
-fi
+usage() { echo "Usage: $0 [-b <bucket_name>] [-o <object_name>] [-r <region>] [-a <access_key>] [-s <secret_access_key>]" 1>&2; exit 1; }
 
-bucket=$1
-object=$2
-region=$3
+while getopts ":b:r:a:s:o:" opt; do
+    case "${opt}" in
+        b)
+            bucket=${OPTARG}
+            ;;
+        o)
+            object=${OPTARG}
+            ;;
+        r)
+            region=${OPTARG}
+            ;;
+        a)
+            s3Key=${OPTARG}
+            ;;
+        s)
+            secret=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "${bucket}" ] || [ -z "${object}" ]|| [ -z "${region}" ] || [ -z "${s3Key}" ] || [ -z "${secret}" ]; then
+    usage
+fi
 
 data=`cat $object`
 timestamp=$(date -u "+%Y-%m-%d %H:%M:%S")
@@ -16,10 +36,9 @@ dateScope=$(date -ud "${timestamp}" "+%Y%m%d")
 
 # Process of getting String to sign
 payload=$(echo -en ${data} | openssl dgst -sha256 | sed 's/^.* //')
-canonical_req="PUT\n/${object}\n\ncontent-type:application/text\nhost:${bucket}.s3-${region}.amazonaws.com\nx-amz-content-sha256:${payload}\nx-amz-date:${isoTimestamp}\nx-amz-meta-author:calsoft\n\ncontent-type;host;x-amz-content-sha256;x-amz-date;x-amz-meta-author\n${payload}"
+canonical_req="PUT\n/${object}\n\ncontent-type:application/text\nhost:${bucket}.s3-${region}.amazonaws.com\nx-amz-content-sha256:${payload}\nx-amz-date:${isoTimestamp}\nx-amz-meta-author:xyz\n\ncontent-type;host;x-amz-content-sha256;x-amz-date;x-amz-meta-author\n${payload}"
 
 hash_canonical=$(echo -en ${canonical_req} | openssl dgst -sha256 | sed 's/^.* //')
-
 
 stringtosign="AWS4-HMAC-SHA256\n${isoTimestamp}\n${dateScope}/${region}/s3/aws4_request\n${hash_canonical}"
 
@@ -29,9 +48,6 @@ hmac_sha256() {
   data=$2
   echo -en "$data" | openssl dgst -sha256 -mac HMAC -macopt "$key" | sed 's/^.* //'
 }
-
-s3Key="aaaaaaaaaaa" # Access key
-secret="bbbbbbbbbbbbbbbb" # Secret Access key
 
 date=${dateScope}
 service="s3"

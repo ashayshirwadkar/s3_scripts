@@ -1,10 +1,30 @@
 #!/bin/sh -x
-bucket=$1
-region=$2
-if [ -z "$2" ]
-then
-    echo "usage: ./create_bucket <bucket_name> <region_name>"
-    exit 1
+usage() { echo "Usage: $0 [-b <bucket_name>] [-r <region>] [-a <access_key>] [-s <secret_access_key>]" 1>&2; exit 1; }
+
+while getopts ":b:r:a:s:" opt; do
+    case "${opt}" in
+        b)
+            bucket=${OPTARG}
+            ;;
+        r)
+            region=${OPTARG}
+            ;;
+        a)
+            s3Key=${OPTARG}
+            ;;
+        s)
+            secret=${OPTARG}
+            ;;
+
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "${bucket}" ] || [ -z "${region}" ] || [ -z "${s3Key}" ] || [ -z "${secret}" ]; then
+    usage
 fi
 
 timestamp=$(date -u "+%Y-%m-%d %H:%M:%S")
@@ -27,11 +47,8 @@ hmac_sha256() {
   echo -en "$data" | openssl dgst -sha256 -mac HMAC -macopt "$key" | sed 's/^.* //'
 }
 
-s3Key="aaaaaaaaaaaaaa" # Access key
-secret="bbbbbbbbbbbbb" # Secret Access key
 date=${dateScope}
 service="s3"
-
 
 # Four-step signing key calculation
 dateKey=$(hmac_sha256 key:"AWS4$secret" $date)

@@ -1,25 +1,43 @@
 #!/bin/sh -x
-if [ -z "$3" ]
-then
-    echo "usage: ./put_object <bucket_name> <object_name> <region_name>"
-    exit 1
-fi
+usage() { echo "Usage: $0 [-b <bucket_name>] [-o <object_name>] [-r <region>] [-a <access_key>] [-s <secret_access_key>]" 1>&2; exit 1; }
 
-bucket=$1
-object=$2
-region=$3
+while getopts ":b:r:a:s:o:" opt; do
+    case "${opt}" in
+        b)
+            bucket=${OPTARG}
+            ;;
+        o)
+            object=${OPTARG}
+            ;;
+        r)
+            region=${OPTARG}
+            ;;
+        a)
+            s3Key=${OPTARG}
+            ;;
+        s)
+            secret=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "${bucket}" ] || [ -z "${object}" ]|| [ -z "${region}" ] || [ -z "${s3Key}" ] || [ -z "${secret}" ]; then
+    usage
+fi
 
 timestamp=$(date -u "+%Y-%m-%d %H:%M:%S")
 isoTimestamp=$(date -ud "${timestamp}" "+%Y%m%dT%H%M%SZ")
 dateScope=$(date -ud "${timestamp}" "+%Y%m%d")
-region="us-east-1"
 
 # Process of getting String to sign
-payload=$(echo -en ${data} | openssl dgst -sha256 | sed 's/^.* //')
-canonical_req="DELETE\n/${object}\n\nhost:${bucket}.s3.amazonaws.com\nx-amz-content-sha256:${payload}\nx-amz-date:${isoTimestamp}\n\nhost;x-amz-content-sha256;x-amz-date\n${payload}"
+payload="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+canonical_req="DELETE\n/${object}\n\nhost:${bucket}.s3-${region}.amazonaws.com\nx-amz-content-sha256:${payload}\nx-amz-date:${isoTimestamp}\n\nhost;x-amz-content-sha256;x-amz-date\n${payload}"
 
 hash_canonical=$(echo -en ${canonical_req} | openssl dgst -sha256 | sed 's/^.* //')
-
 
 stringtosign="AWS4-HMAC-SHA256\n${isoTimestamp}\n${dateScope}/${region}/s3/aws4_request\n${hash_canonical}"
 
@@ -30,25 +48,20 @@ hmac_sha256() {
   echo -en "$data" | openssl dgst -sha256 -mac HMAC -macopt "$key" | sed 's/^.* //'
 }
 
-s3Key="aaaaaaaaaaaaaa" #Access key
-secret="bbbbbbbbbbbbb" #Secret Access key
-
 date=${dateScope}
 service="s3"
 
 # Four-step signing key calculation
 dateKey=$(hmac_sha256 key:"AWS4$secret" $date)
-
 echo "dateKey" $dateKey
 
 dateRegionKey=$(hmac_sha256 hexkey:$dateKey $region)
-
 echo "dateRegionKey" $dateRegionKey
+
 dateRegionServiceKey=$(hmac_sha256 hexkey:$dateRegionKey $service)
-
 echo "dateRegionServiceKey" $dateRegionServiceKey
-signingKey=$(hmac_sha256 hexkey:$dateRegionServiceKey "aws4_request")
 
+signingKey=$(hmac_sha256 hexkey:$dateRegionServiceKey "aws4_request")
 echo "Value of signing key is" $signingKey
 
 # Signature calculated using string_to_sign and signing key
@@ -62,7 +75,7 @@ signedHeaders="host;x-amz-content-sha256;x-amz-date"
 auth_header="AWS4-HMAC-SHA256 Credential= ${cred}, SignedHeaders=${signedHeaders}, Signature=${calc_sign}" 
 
 # Final request
-curl -v -X DELETE https://${bucket}.s3.amazonaws.com/${object} \
+curl -v -X DELETE https://${bucket}.s3-${region}.amazonaws.com/${object} \
     -H "Authorization: AWS4-HMAC-SHA256 \
          Credential=${cred}, \
          SignedHeaders=${signedHeaders}, \
